@@ -43,58 +43,11 @@ instance Substitute' (Symbol x) value (Symbol y) IFalse (Symbol y)
 instance (Substitute name value body output) => Substitute' name value (Lambda x body) IFalse (Lambda x output)
 instance (Substitute name value expr1 output1, Substitute name value expr2 output2) => Substitute' name value (Apply expr1 expr2) IFalse (Apply output1 output2)
 
--- original:
--- class Substitute name value expression output | name value expression -> output
--- instance Substitute (Symbol x) value (Symbol x) value -- hmm overlapping instances
--- instance Substitute (Symbol x) value (Symbol y) (Symbol y) -- hmm overlapping instances
--- instance (Substitute name value body output) => Substitute name value (Lambda x body) (Lambda x output)
--- instance (Substitute name value expr1 output1, Substitute name value expr2 output2) => Substitute name value (Apply expr1 expr2) (Apply output1 output2)
-
-
--- latest progress:
--- class Substitute name value expression output | name value expression -> output
--- instance (SymbolValue s1 s1v, SymbolValue s2 s2v, IsEqual s1v s2v flag, Substitute' s1 value s2 flag output) => Substitute s1 value s2 output
--- -- instance (SymbolValue s1 s1v, SymbolValue s2 s2v, IsEqual s1v s2v, Substitute' s1 value s2 IFalse output) => Substitute s1 value s2 output
--- -- instance (SymbolValue s1 s1v, SymbolValue s2 s2v) => Substitute' s1 value s2 IFalse output
-
--- class Substitute' name value expression symbolsEqual output | name value expression symbolsEqual -> output
--- instance Substitute' (Symbol x) value (Symbol x) ITrue value
--- instance Substitute' (Symbol x) value (Symbol y) IFalse (Symbol y)
--- instance (Substitute' name value body symEq output) => Substitute' name value (Lambda x body) symEq (Lambda x output)
--- instance (Substitute' name value expr1 symEq output1, Substitute' name value expr2 symEq output2) => Substitute' name value (Apply expr1 expr2) symEq (Apply output1 output2)
-
-
-
-
--- class Substitute name value expression output | name value expression -> output
--- instance (SymbolValue s1 s1v, SymbolValue s2 s2v, IsEqual s1v s2v) => Substitute' s1 value s2 ITrue output
--- instance (SymbolValue s1 s1v, SymbolValue s2 s2v) => Substitute' s1 value s2 IFalse output
--- -- instance (Substitute' s1 value s2 ITrue output) => Substitute s1 value s2 output
-
--- class Substitute' name value expression symbolsEqual output | name value expression symbolsEqual -> output
--- instance Substitute' (Symbol x) value (Symbol x) ITrue value
--- instance Substitute' (Symbol x) value (Symbol y) IFalse (Symbol y)
--- instance (Substitute' name value body symEq output) => Substitute' name value (Lambda x body) symEq (Lambda x output)
--- instance (Substitute' name value expr1 symEq output1, Substitute' name value expr2 symEq output2) => Substitute' name value (Apply expr1 expr2) symEq (Apply output1 output2)
-
--- class Substitute name value expression output | name value expression -> output
--- instance (SymbolValue a x, SymbolValue b x) => Substitute a value b value
--- instance (SymbolValue a x, SymbolValue b y) => Substitute a value b value
--- -- instance Substitute (Symbol x) value (Symbol y) (Symbol y)
--- instance (Substitute name value body output) => Substitute name value (Lambda x body) (Lambda x output)
--- instance (Substitute name value expr1 output1, Substitute name value expr2 output2) => Substitute name value (Apply expr1 expr2) (Apply output1 output2)
-
--- Substitute (Symbol B) (Lambda var body) 
-
 -- https://wiki.haskell.org/GHC/AdvancedOverlap
 class LambdaPredicate expr isLambda | expr -> isLambda
 instance LambdaPredicate (Lambda a b) ITrue
 instance LambdaPredicate (Apply f x) IFalse
 instance LambdaPredicate (Symbol x) IFalse
-
--- class Reduce expression output | expression -> output
--- instance (Substitute arg expr body output) => Reduce (Apply (Lambda arg body) expr) output
--- instance (LambdaPredicate expr IFalse) => Reduce (Apply expr output) (Apply expr output)
 
 -- problem is that context isn't considered, this just sees Reduce Apply _ for both.
 
@@ -113,29 +66,9 @@ instance (Reduce expr1 outputExpr1, Reduce expr2 outputExpr2, LambdaPredicate ou
 instance (Reduce b outputB, Reduce' (Lambda a outputB) IFalse output) => Reduce (Lambda a b) output
 instance (Reduce' (Symbol x) IFalse output) => Reduce (Symbol x) output
 
--- YAYAYAYAYAYAYAYYAYAYA
-
--- instance (Substitute arg expr body output) => Reduce (Apply (Lambda arg body) expr) output
--- instance (LambdaPredicate expr IFalse) => Reduce (Apply expr output) (Apply expr output)
-
--- instance (Reduce f f', Reduce x x') => Reduce (Apply (Apply f x) e2) (Apply (Apply f' x') e2)
--- in normal hs, handling (Apply (Lambda x body) y) would make handling (Apply f g) after not catch the (Lambda x body)
--- But in this wonderful world we get overlapping instances, have to declare explicitly
--- instance Reduce (Lambda a b) (Lambda a b)
--- instance Reduce (Symbol x) (Symbol x)
-
--- class Reduce expression output | expression -> output
-
--- class Reduce' expression flag output | expression -> flag output
--- instance (Substitute arg expr body output) => Reduce' (Apply (Lambda arg body) expr) ITrue output
--- instance (LambdaPredicate expr IFalse) => Reduce' (Apply expr output) IFalse (Apply expr output)
-
--- instance (LambdaPredicate expr flag, Reduce' flag expr output) => Reduce expr output
-
-
 ---------------------------
 
--- CAUTION does not handle duplicate function names correctly
+-- CAUTION does not handle duplicate function names correctly, need to implement capture-avoiding substitution
 
 data X
 data T
