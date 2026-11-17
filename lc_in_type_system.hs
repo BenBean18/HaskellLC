@@ -22,6 +22,7 @@ instance SymbolValue (Symbol a) a
 instance SymbolValue (Lambda a b) INothing
 instance SymbolValue (Apply f x) INothing
 
+-- kinda cheating but whatever
 type family IsEqual a b where
   IsEqual INothing INothing = IFalse
   IsEqual a a = ITrue
